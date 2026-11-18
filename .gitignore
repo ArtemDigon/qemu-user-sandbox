@@ -14,3 +14,6 @@ sandbox/attack_wildwrite
 *.o
 *.core
 core
+
+*.sh
+sandbox/bench2.c
