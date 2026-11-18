@@ -1,0 +1,28 @@
+--- /home/artem/Desktop/diplom/qemu-build/qemu-10.1.0/tcg/aarch64/tcg-target.c.inc.orig	2026-11-18 14:50:36.125001690 +0300
++++ /home/artem/Desktop/diplom/qemu-build/qemu-10.1.0/tcg/aarch64/tcg-target.c.inc	2026-11-18 15:38:27.722269684 +0300
+@@ -86,6 +86,7 @@
+ #define TCG_REG_TMP0 TCG_REG_X16
+ #define TCG_REG_TMP1 TCG_REG_X17
+ #define TCG_REG_TMP2 TCG_REG_X30
++#define SBX_GUEST_MASK 0xFFFFFFFFull
+ #define TCG_VEC_TMP0 TCG_REG_V31
+ 
+ #define TCG_REG_GUEST_BASE TCG_REG_X28
+@@ -1736,11 +1737,15 @@
+         }
+ 
+         if (guest_base || addr_type == TCG_TYPE_I32) {
++            tcg_out_logicali(s, I3404_ANDI, TCG_TYPE_I64, TCG_REG_TMP0,
++                             addr_reg, SBX_GUEST_MASK);
+             h->base = TCG_REG_GUEST_BASE;
+-            h->index = addr_reg;
++            h->index = TCG_REG_TMP0;
+             h->index_ext = addr_type;
+         } else {
+-            h->base = addr_reg;
++            tcg_out_logicali(s, I3404_ANDI, TCG_TYPE_I64, TCG_REG_TMP0,
++                             addr_reg, SBX_GUEST_MASK);
++            h->base = TCG_REG_TMP0;
+             h->index = TCG_REG_XZR;
+             h->index_ext = TCG_TYPE_I64;
+         }

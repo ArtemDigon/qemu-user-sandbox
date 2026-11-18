@@ -1,0 +1,44 @@
+--- /home/artem/Desktop/diplom/qemu-build/qemu-10.1.0/linux-user/syscall.c.orig	2026-11-18 14:19:11.190364458 +0300
++++ /home/artem/Desktop/diplom/qemu-build/qemu-10.1.0/linux-user/syscall.c	2026-11-18 14:33:52.437056753 +0300
+@@ -8501,9 +8501,29 @@
+     return -2;
+ }
+ 
++/* --- Уровень 3: политика гостевых системных вызовов --- */
++static int sbx_blocked_open_path(const char *p)
++{
++    if (!p) return 0;
++    if (strcmp(p, "/proc/self/mem") == 0) return 1;
++    if (strcmp(p, "/proc/thread-self/mem") == 0) return 1;
++    {
++        char self[64];
++        int n = snprintf(self, sizeof self, "/proc/%d/mem", (int)getpid());
++        if (n > 0 && (size_t)n < sizeof self && strcmp(p, self) == 0) return 1;
++    }
++    return 0;
++}
++
+ int do_guest_openat(CPUArchState *cpu_env, int dirfd, const char *pathname,
+                     int flags, mode_t mode, bool safe)
+ {
++    /* Уровень 3: запрет открытия псевдофайла памяти процесса */
++    if (sbx_blocked_open_path(pathname)) {
++        errno = EPERM;
++        return -1;
++    }
++
+     int fd = maybe_do_fake_open(cpu_env, dirfd, pathname, flags, mode, 0, safe);
+     if (fd > -2) {
+         return fd;
+@@ -8541,6 +8561,11 @@
+     if (!pathname) {
+         return -TARGET_EFAULT;
+     }
++    /* Уровень 3: запрет открытия псевдофайла памяти процесса */
++    if (sbx_blocked_open_path(pathname)) {
++        unlock_user(pathname, guest_pathname, 0);
++        return -TARGET_EPERM;
++    }
+ 
+     how.flags = target_to_host_bitmask(tswap64(how.flags), fcntl_flags_tbl);
+     how.mode = tswap64(how.mode);

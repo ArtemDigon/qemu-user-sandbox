@@ -1,0 +1,14 @@
+--- /home/artem/Desktop/diplom/qemu-build/qemu-10.1.0/linux-user/elfload.c.orig	2026-11-18 14:55:49.558180631 +0300
++++ /home/artem/Desktop/diplom/qemu-build/qemu-10.1.0/linux-user/elfload.c	2026-11-18 14:55:49.575522214 +0300
+@@ -233,8 +233,9 @@
+      */
+     if (reserved_va != 0 &&
+         TARGET_VSYSCALL_PAGE + TARGET_PAGE_SIZE - 1 > reserved_va) {
+-        error_report("Cannot allocate vsyscall page");
+-        exit(EXIT_FAILURE);
++        /* Уровень 2 (SFI): окно меньше адреса vsyscall -- пропускаем */
++        /* (современная glibc использует vDSO, vsyscall не требуется) */
++        return true;
+     }
+     page_set_flags(TARGET_VSYSCALL_PAGE,
+                    TARGET_VSYSCALL_PAGE | ~TARGET_PAGE_MASK,

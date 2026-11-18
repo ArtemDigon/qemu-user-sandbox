@@ -1,0 +1,16 @@
+# дерево и сборка QEMU — не храним (качается build_qemu.sh)
+qemu-build/
+# генерируемое окружение
+sandbox/rootfs/
+# скомпилированные бинарники
+sandbox/sandbox
+sandbox/bench
+sandbox/bench2
+sandbox/attack_readfile
+sandbox/attack_network
+sandbox/attack_forkbomb
+sandbox/attack_procmem
+sandbox/attack_wildwrite
+*.o
+*.core
+core
